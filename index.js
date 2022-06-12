@@ -4,21 +4,21 @@ import { v1 as uuid } from 'uuid';
 
 const persons = [
   {
-    name: 'Juan',
+    name: 'Negro',
     phone: '12345678',
     street: 'Calle falsa 123',
     city: 'Ciudad falsa',
     id: '12345678',
   },
   {
-    name: 'Pedro',
+    name: 'Pablo',
     phone: '87654321',
     street: 'Calle verdadera 123',
     city: 'Ciudad verdadera',
     id: '14785236',
   },
   {
-    name: 'Maria',
+    name: 'Roxana',
     street: 'Calle falsa 123',
     city: 'Ciudad falsa',
     id: '87654321',
