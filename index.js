@@ -1,7 +1,8 @@
-import { ApolloServer,UserInputError, gql } from 'apollo-server';
+import { ApolloServer, UserInputError, gql } from 'apollo-server';
+import axios from 'axios';
 import { v1 as uuid } from 'uuid';
 
-const personas = [
+const persons = [
   {
     name: 'Juan',
     phone: '12345678',
@@ -25,6 +26,11 @@ const personas = [
 ];
 
 const typeDefinitions = gql`
+  enum YesNo {
+    YES
+    NO
+  }
+
   type Address {
     street: String!
     city: String!
@@ -37,7 +43,7 @@ const typeDefinitions = gql`
   }
   type Query {
     personCount: Int!
-    allPersons: [Person]!
+    allPersons(phone: YesNo): [Person]!
     findPerson(name: String!): Person!
   }
   type Mutation {
@@ -47,30 +53,49 @@ const typeDefinitions = gql`
       street: String!
       city: String!
     ): Person
+
+    editNumber(name: String!, phone: String!): Person
   }
 `;
 
 const resolvers = {
   Query: {
-    personCount: () => personas.length,
-    allPersons: () => personas,
+    personCount: () => persons.length,
+    allPersons: async (root, args) => {
+      const {data: personsFromRestApi} = await axios.get('http://localhost:3001/persons');
+      if (!args.phone) return personsFromRestApi;
+      return personsFromRestApi.filter((person) => {
+        return args.phone === 'YES' ? person.phone : !person.phone;
+      });
+    },
     findPerson: (root, args) => {
-      return personas.find((persona) => persona.name === args.name);
+      return persons.find((persona) => persona.name === args.name);
     },
   },
   Mutation: {
     addPerson: (root, args) => {
-      if (personas.find((p) => p.name === args.name)) {
-        throw new UserInputError(`Person with name ${args.name} already exists`,{
-            invalidArgs: args.name
-        });
+      if (persons.find((p) => p.name === args.name)) {
+        throw new UserInputError(
+          `Person with name ${args.name} already exists`,
+          {
+            invalidArgs: args.name,
+          }
+        );
       }
       const newPerson = {
         ...args,
         id: uuid(),
       };
-      personas.push(newPerson);
+      persons.push(newPerson);
       return newPerson;
+    },
+    editNumber: (root, args) => {
+      const personIndex = persons.findIndex((p) => p.name === args.name);
+      if (personIndex === -1) return null;
+      const person = persons[personIndex];
+      const updatedPerson = { ...person, phone: args.phone };
+      persons[personIndex] = updatedPerson;
+      return updatedPerson;
     },
   },
   Person: {
