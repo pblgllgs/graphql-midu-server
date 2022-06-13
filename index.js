@@ -62,12 +62,20 @@ const resolvers = {
   Query: {
     personCount: () => persons.length,
     allPersons: async (root, args) => {
-      const {data: personsFromRestApi} = await axios.get('http://localhost:3001/persons');
-      if (!args.phone) return personsFromRestApi;
-      return personsFromRestApi.filter((person) => {
-        return args.phone === 'YES' ? person.phone : !person.phone;
-      });
+      if (!args.phone) return persons;
+      const byPhone = person => 
+      args.phone === 'YES' ? person.phone : !person.phone;
+      return persons.filter(byPhone);
     },
+    // allPersons: async (root, args) => {
+    //   const { data: personsFromRestApi } = await axios.get(
+    //     'http://localhost:3001/persons'
+    //   );
+    //   if (!args.phone) return personsFromRestApi;
+    //   return personsFromRestApi.filter((person) => {
+    //     return args.phone === 'YES' ? person.phone : !person.phone;
+    //   });
+    // },
     findPerson: (root, args) => {
       return persons.find((persona) => persona.name === args.name);
     },
